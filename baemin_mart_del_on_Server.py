@@ -2,7 +2,11 @@
 import pandas as pd
 import requests 
 import time
+from sqlalchemy import *
+import MySQLdb
 
+
+# 카테고리 수정 전(참고용)
 # categories = {
 #     100104 : "플라스틱용기",
 #     100105 : "종이용기/박스",
@@ -14,6 +18,7 @@ import time
 #     100188 : "기타가게용품",
 # }
 
+# 카테고리 수정 후 
 categories = {
     100104 : "포장용품",
     100105 : "포장용품",
@@ -24,6 +29,36 @@ categories = {
     100188 : "가게위생용품",
 }
 
+db = MySQLdb.connect(
+    "디스코드 참고해주세용",  # database server public ip
+    "디스코드 참고해주세용",           # user
+    "디스코드 참고해주세용",            # password
+    "test",          # database name
+    charset='utf8',
+)
+curs = db.cursor()
+curs.execute('set names utf8')
+db.commit
+
+QUERY_1 = """
+DROP DATABASE IF EXISTS baemin_db; 
+CREATE DATABASE baemin_db DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+USE baemin_db;
+DROP TABLE IF EXISTS baemin_db.baemin;
+CREATE TABLE IF NOT EXISTS baemin_db.baemin(
+    item_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    category VARCHAR(6),
+    title VARCHAR(60),
+    price INT,
+    o_price INT,
+    min_gram VARCHAR(30),
+    price_per_gram VARCHAR(20),
+    PRIMARY KEY(item_id)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_bin
+"""
+curs.execute(QUERY_1)
+db.commit
 
 def baemin_items(category, page):
     url = "https://mart.baemin.com/api/v2/front/categories/goods/{}/paging?goodsSortType=BASIC&page={}".format(category, page)
@@ -34,7 +69,6 @@ def baemin_items(category, page):
         title = element['name']
         price = element['goodsPrice']
         o_price = element['customerPrice']
-        # 원인은 모르겠지만.. 100050/밀가루 쪽에서 에러남
         try :
             min_gram = element['sizeDesc']
         except:
@@ -43,6 +77,20 @@ def baemin_items(category, page):
             price_per_gram = element['priceDesc']
         except:
             price_per_gram = "-"
+
+        # SQL로 넣기
+        QUERY_2 = """
+        INSERT INTO baemin_db.baemin(
+        category, title, price, o_price, min_gram, price_per_gram
+        )
+        VALUES(
+        '%s', '%s', %d, %d, '%s', '%s' 
+        )
+        """%(categories[category], title, price, o_price, min_gram, price_per_gram)
+        curs.execute(QUERY_2)
+        db.commit()
+                
+        # DF로 만들기
         datas.append({
             "category": categories[category],
             "title" : title,
@@ -68,8 +116,17 @@ for category in categories:
 baemin_mart_delivery_goods_df = pd.concat(dfs)
 baemin_mart_delivery_goods_df
 
-baemin_mart_delivery_goods_df.to_csv("baemin_mart_delivery_goods.csv", index=False, encoding="utf-8-sig")
+print("="*50)
+print("Plz input 'baemin_mart_delivery_goods_df'")
+print("="*50)
 
-print("="*100)
-print("It's saved as baemin_mart_delivery_goods.csv file.")
-print("="*100)
+
+
+# engine = create_engine("mysql://root:dss@15.164.65.158/test")
+# baemin_mart_delivery_goods_df.to_sql(name="baemin_del_goods", con=engine, if_exists="replace")
+
+# baemin_mart_delivery_goods_df.to_csv("baemin_mart_delivery_goods.csv", index=False, encoding="utf-8-sig")
+
+# print("="*100)
+# print("It's saved as baemin_mart_delivery_goods.csv file.")
+# print("="*100)
