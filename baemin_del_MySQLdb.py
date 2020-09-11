@@ -130,9 +130,6 @@ print("="*60)
 
 
 
-# engine = create_engine("mysql://root:dss@15.164.65.158/test")
-# baemin_mart_delivery_goods_df.to_sql(name="baemin_del_goods", con=engine, if_exists="replace")
-
 # baemin_mart_delivery_goods_df.to_csv("baemin_mart_delivery_goods.csv", index=False, encoding="utf-8-sig")
 
 # print("="*100)
