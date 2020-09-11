@@ -28,7 +28,7 @@ def baemin_items(category, page):
     for element in elements:
         title = element['name']
         price = element['goodsPrice']
-        o_price = element['customerPrice']
+#         o_price = element['customerPrice']
         # 원인은 모르겠지만.. 100050/밀가루 쪽에서 에러남
         try :
             min_gram = element['sizeDesc']
@@ -38,13 +38,15 @@ def baemin_items(category, page):
             price_per_gram = element['priceDesc']
         except:
             price_per_gram = "-"
+        link = "https://mart.baemin.com/goods/detail/" + str(element['id'])
         datas.append({
             "category": categories[category],
             "title" : title,
             "price" : price,
-            "o_price" : o_price,
+#             "o_price" : o_price,
             "min_gram" : min_gram,
             "price_per_gram" : price_per_gram,
+            "link" : link,
         })
         
     return pd.DataFrame(datas)
@@ -60,10 +62,10 @@ for category in categories:
     time.sleep(2)
 
 # global gagong_df -> 파이썬 파일을 실행 했을 때 gagong_df가 나왔으면 좋겠음.. 
-baemin_mart_items_df = pd.concat(dfs)
+baemin_mart_items_df = pd.concat(dfs, ignore_index=True)
 baemin_mart_items_df
 
-baemin_mart_items_df.to_csv("baemin_mart_items.csv", index=False, encoding="utf-8-sig")
+baemin_mart_items.to_csv("baemin_mart_items.csv", index=False, encoding="utf-8-sig")
 
 print("="*100)
 print("It's saved as baemin_mart_items.csv file.")

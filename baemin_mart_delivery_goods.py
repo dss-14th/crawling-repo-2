@@ -3,8 +3,6 @@ import pandas as pd
 import requests 
 import time
 
-
-# 카테고리 수정 전(참고용)
 # categories = {
 #     100104 : "플라스틱용기",
 #     100105 : "종이용기/박스",
@@ -16,7 +14,6 @@ import time
 #     100188 : "기타가게용품",
 # }
 
-# 카테고리 수정 후 
 categories = {
     100104 : "포장용품",
     100105 : "포장용품",
@@ -36,7 +33,7 @@ def baemin_items(category, page):
     for element in elements:
         title = element['name']
         price = element['goodsPrice']
-        o_price = element['customerPrice']
+#         o_price = element['customerPrice']
         # 원인은 모르겠지만.. 100050/밀가루 쪽에서 에러남
         try :
             min_gram = element['sizeDesc']
@@ -46,15 +43,16 @@ def baemin_items(category, page):
             price_per_gram = element['priceDesc']
         except:
             price_per_gram = "-"
+        link = "https://mart.baemin.com/goods/detail/" + str(element['id'])
         datas.append({
             "category": categories[category],
             "title" : title,
             "price" : price,
-            "o_price" : o_price,
+#             "o_price" : o_price,
             "min_gram" : min_gram,
             "price_per_gram" : price_per_gram,
+            "link" : link,
         })
-        
     return pd.DataFrame(datas)
 
 dfs = []
@@ -68,7 +66,7 @@ for category in categories:
     time.sleep(2)
 
 # global gagong_df -> 파이썬 파일을 실행 했을 때 gagong_df가 나왔으면 좋겠음.. 
-baemin_mart_delivery_goods_df = pd.concat(dfs)
+baemin_mart_delivery_goods_df = pd.concat(dfs, ignore_index=True)
 baemin_mart_delivery_goods_df
 
 baemin_mart_delivery_goods_df.to_csv("baemin_mart_delivery_goods.csv", index=False, encoding="utf-8-sig")
