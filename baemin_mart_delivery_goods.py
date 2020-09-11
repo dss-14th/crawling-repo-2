@@ -3,6 +3,8 @@ import pandas as pd
 import requests 
 import time
 
+
+# 카테고리 수정 전(참고용)
 # categories = {
 #     100104 : "플라스틱용기",
 #     100105 : "종이용기/박스",
@@ -14,6 +16,7 @@ import time
 #     100188 : "기타가게용품",
 # }
 
+# 카테고리 수정 후 
 categories = {
     100104 : "포장용품",
     100105 : "포장용품",

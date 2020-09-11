@@ -4,6 +4,11 @@ import requests
 import time
 from sqlalchemy import *
 import MySQLdb
+import configparser
+
+config = configparser.ConfigParser()
+config.read("../db.ini")
+sql_datas = config["sql"]
 
 
 # 카테고리 수정 전(참고용)
@@ -30,9 +35,9 @@ categories = {
 }
 
 db = MySQLdb.connect(
-    "디스코드 참고해주세용",  # database server public ip
-    "디스코드 참고해주세용",           # user
-    "디스코드 참고해주세용",            # password
+    sql_datas['public_ip'],  # database server public ip
+    sql_datas['user'],           # user
+    sql_datas['pw'],            # password
     "test",          # database name
     charset='utf8',
 )
@@ -51,9 +56,9 @@ CREATE TABLE IF NOT EXISTS baemin_db.baemin(
     category VARCHAR(6),
     title VARCHAR(60),
     price INT,
-    o_price INT,
     min_gram VARCHAR(30),
     price_per_gram VARCHAR(20),
+    link VARCHAR(50),
     PRIMARY KEY(item_id)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_bin
 """
@@ -68,7 +73,8 @@ def baemin_items(category, page):
     for element in elements:
         title = element['name']
         price = element['goodsPrice']
-        o_price = element['customerPrice']
+#         o_price = element['customerPrice']
+        # 원인은 모르겠지만.. 100050/밀가루 쪽에서 에러남
         try :
             min_gram = element['sizeDesc']
         except:
@@ -77,16 +83,17 @@ def baemin_items(category, page):
             price_per_gram = element['priceDesc']
         except:
             price_per_gram = "-"
+        link = "https://mart.baemin.com/goods/detail/" + str(element['id'])
 
         # SQL로 넣기
         QUERY_2 = """
         INSERT INTO baemin_db.baemin(
-        category, title, price, o_price, min_gram, price_per_gram
+        category, title, price, min_gram, price_per_gram, link
         )
         VALUES(
-        '%s', '%s', %d, %d, '%s', '%s' 
+        '%s', '%s', %d, '%s', '%s', '%s' 
         )
-        """%(categories[category], title, price, o_price, min_gram, price_per_gram)
+        """%(categories[category], title, price, min_gram, price_per_gram, link)
         curs.execute(QUERY_2)
         db.commit()
                 
@@ -95,9 +102,10 @@ def baemin_items(category, page):
             "category": categories[category],
             "title" : title,
             "price" : price,
-            "o_price" : o_price,
+#             "o_price" : o_price,
             "min_gram" : min_gram,
             "price_per_gram" : price_per_gram,
+            "link" : link,
         })
         
     return pd.DataFrame(datas)
@@ -113,12 +121,12 @@ for category in categories:
     time.sleep(2)
 
 # global gagong_df -> 파이썬 파일을 실행 했을 때 gagong_df가 나왔으면 좋겠음.. 
-baemin_mart_delivery_goods_df = pd.concat(dfs)
+baemin_mart_delivery_goods_df = pd.concat(dfs, ignore_index=True)
 baemin_mart_delivery_goods_df
 
-print("="*50)
+print("="*60)
 print("Plz input 'baemin_mart_delivery_goods_df'")
-print("="*50)
+print("="*60)
 
 
 
